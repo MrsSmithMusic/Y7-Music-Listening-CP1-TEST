@@ -1,2 +1,67 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Endon Music — Listening Extract 1</title><style>body{font-family:Arial,sans-serif;background:#14233d;color:white;max-width:800px;margin:40px auto;padding:18px}h1{font-size:26px}.panel{background:#243957;border-radius:14px;padding:22px}button{background:#5e9aff;color:#071a31;border:0;border-radius:9px;padding:15px 22px;font-weight:bold;font-size:17px;cursor:pointer}button:disabled{opacity:.5;cursor:not-allowed}#player{margin:16px 0;max-width:100%}#status{margin:14px 0;color:#d5e6ff}.note{font-size:14px;color:#c4d2e8}</style></head><body><h1>Endon Music — Listening Extract 1</h1><div class="panel"><p><strong>Extract:</strong> 1:20–2:10 (50 seconds)</p><div id="player"></div><button id="play" disabled>Loading player…</button><p id="status" role="status">Connecting to YouTube…</p><p class="note">Press Play / Replay to hear the extract. Playback pauses automatically at 2:10. Requires internet access and YouTube embedding permission. Test on the computer used for the exam.</p></div><script>const START=80,END=130;let player,interval;const button=document.getElementById('play'),status=document.getElementById('status');function stopCheck(){if(interval){clearInterval(interval);interval=null}}function checkEnd(){if(player&&typeof player.getCurrentTime==='function'&&player.getCurrentTime()>=END){player.pauseVideo();stopCheck();status.textContent='Extract finished. Press Play / Replay to hear it again.'}}function onYouTubeIframeAPIReady(){player=new YT.Player('player',{width:'720',height:'405',videoId:'46C5IHC_uo8',playerVars:{start:START,playsinline:1,rel:0},events:{onReady:()=>{button.disabled=false;button.textContent='▶ Play / Replay extract';status.textContent='Ready to play.'},onStateChange:e=>{if(e.data===YT.PlayerState.PLAYING){stopCheck();interval=setInterval(checkEnd,100);status.textContent='Playing extract…'}else if(e.data===YT.PlayerState.PAUSED||e.data===YT.PlayerState.ENDED){stopCheck();if(e.data===YT.PlayerState.ENDED)status.textContent='Extract finished.'}},onError:e=>{stopCheck();status.textContent='YouTube playback error ('+e.data+'). This video may not allow embedded playback.'}}})}button.addEventListener('click',()=>{if(!player)return;stopCheck();player.seekTo(START,true);player.playVideo();status.textContent='Starting extract…'});const s=document.createElement('script');s.src='https://www.youtube.com/iframe_api';document.head.appendChild(s);setTimeout(()=>{if(button.disabled)status.textContent='The YouTube player has not loaded. Check internet access and whether this page is opened from an allowed web address.'},12000);</script></body></html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Year 7 Music Listening Assessment</title>
+<style>
+body{font-family:Arial,sans-serif;background:#172b47;color:white;margin:0;padding:24px}
+main{max-width:900px;margin:auto}
+section{background:#263e60;border-radius:14px;padding:20px;margin:20px 0}
+.video{aspect-ratio:16/9;max-width:700px;background:#091525}
+.video iframe{width:100%;height:100%}
+button{background:#69a1ff;color:#071c35;border:0;border-radius:8px;padding:14px 18px;font-size:17px;font-weight:bold;cursor:pointer;margin:12px 8px 0 0}
+.status{color:#d2e3fa}
+</style>
+</head>
+<body><main>
+<h1>Year 7 Music – Listening Assessment</h1>
+<p>Teacher controls: select an extract and press Play / Replay.</p>
+<div id="clips"></div>
+<p>Test all extracts before the exam. YouTube adverts and embedding restrictions may affect playback.</p>
+</main>
+<script>
+const clips=[
+{title:"Extract 1 – We Will Rock You",id:"46C5IHC_uo8",start:80,end:130},
+{title:"Extract 2",id:"OqvHWUZZdP0",start:64,end:140},
+{title:"Extract 3",id:"_D0ZQPqeJkk",start:0,end:87}
+];
+const players=[],timers=[];
+let active=-1;
+const root=document.getElementById("clips");
+clips.forEach((c,i)=>{
+const section=document.createElement("section");
+section.innerHTML='<h2>'+c.title+'</h2><p>'+Math.floor(c.start/60)+':'+String(c.start%60).padStart(2,"0")+' to '+Math.floor(c.end/60)+':'+String(c.end%60).padStart(2,"0")+'</p><div class="video"><div id="video-'+i+'"></div></div><button id="play-'+i+'">▶ Play / Replay</button><button id="stop-'+i+'">■ Stop</button><p class="status" id="status-'+i+'">Loading player…</p>';
+root.appendChild(section);
+document.getElementById("play-"+i).onclick=()=>play(i);
+document.getElementById("stop-"+i).onclick=()=>stop(i);
+});
+function message(i,s){document.getElementById("status-"+i).textContent=s}
+function stop(i){clearInterval(timers[i]);if(players[i]&&players[i].pauseVideo)players[i].pauseVideo();if(active===i)active=-1;message(i,"Stopped / ready to replay")}
+function play(i){
+if(!players[i]||!players[i].seekTo){message(i,"Player not ready");return}
+if(active!==-1)stop(active);
+clearInterval(timers[i]);active=i;
+players[i].seekTo(clips[i].start,true);
+players[i].playVideo();
+message(i,"Playing…");
+timers[i]=setInterval(()=>{
+if(active===i&&players[i].getCurrentTime()>=clips[i].end-0.15){stop(i);message(i,"Extract finished")}
+},150);
+}
+window.onYouTubeIframeAPIReady=()=>{
+clips.forEach((c,i)=>{
+players[i]=new YT.Player("video-"+i,{
+videoId:c.id,
+playerVars:{start:c.start,end:c.end,playsinline:1},
+events:{
+onReady:()=>message(i,"Ready to play"),
+onError:e=>message(i,"YouTube error "+e.data+" – check embedding permissions")
+}
+});
+});
+};
+const script=document.createElement("script");
+script.src="https://www.youtube.com/iframe_api";
+document.head.appendChild(script);
+</script></body></html>
